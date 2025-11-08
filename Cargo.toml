@@ -19,11 +19,11 @@ codegen-backend = "cranelift"
 opt-level = 3
 codegen-backend = "llvm"
 
-
-[target.x86_64-unknown-linux-gnu]
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
-
 [profile.release]
 codegen-backend = "llvm"
+
+# --- クロスコンパイル設定 ---
+# WSLから Windows (MSVC) 向けにビルドする場合の設定
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld" # 高速なリンカを使用
 
