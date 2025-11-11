@@ -1,42 +1,16 @@
 use bevy::prelude::*;
 
-#[derive(Component)]
-struct Person;
-
-#[derive(Component)]
-struct Name(String);
-
-// 一つだけ存在してどこからでもアクセスできるシステム時間のリソース
-#[derive(Resource)]
-struct GreetTimer(Timer);
-
-fn add_people(mut commands: Commands) {
-    commands.spawn((Person, Name("Ritsu_wada".to_string())));
-    commands.spawn((Person, Name("R3".to_string())));
+mod plugins {
+    pub mod key_mgr;
+    pub mod player_plugin;
 }
-
-fn greet_people(time: Res<Time>, mut timer: ResMut<GreetTimer>, query: Query<&Name, With<Person>>) {
-    if timer.0.tick(time.delta()).just_finished() {
-        for name in &query {
-            println!("hello {}", name.0);
-        }
-    }
-}
-
-pub struct HelloPlugin;
-
-impl Plugin for HelloPlugin {
-    fn build(&self, app: &mut App) {
-        // add my app
-        app.insert_resource(GreetTimer(Timer::from_seconds(2.0, TimerMode::Repeating)));
-        app.add_systems(Startup, add_people);
-        app.add_systems(Update, greet_people);
-    }
-}
+use plugins::key_mgr::KeyMgr;
+use plugins::player_plugin::PlayerPlugin;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(HelloPlugin)
+        .add_plugins(PlayerPlugin)
+        .add_plugins(KeyMgr)
         .run();
 }
