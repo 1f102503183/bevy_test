@@ -24,16 +24,21 @@ struct GreetTimer(Timer);
 
 fn setup_player(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>, // mut meshes: ResMut<Assets<Mesh>>,
+                                    // mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn(Camera2d); // Bundleとかくとエラーになる
     commands.spawn((
         Id { id: 0 },
         HitPoint { hp: 100 },
         Movespeed { speed: 1.0 },
-        Mesh2d(meshes.add(Circle::new(50.0))),
-        MeshMaterial2d(materials.add(Color::srgb(1.0, 1.0, 1.0))),
+        Sprite {
+            image: asset_server.load("sprite/player/tmp.png"),
+            custom_size: Some(Vec2::new(100.0, 100.0)),
+            ..default()
+        },
+        Transform::from_xyz(0.0, 0.0, 0.0),
+        // MeshMaterial2d(materials.add(Color::srgb(1.0, 1.0, 1.0))),
         Player,
     ));
 }
