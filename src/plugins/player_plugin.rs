@@ -28,13 +28,6 @@ fn setup_player(
                                     // mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn(Camera2d); // Bundleとかくとエラーになる
-    commands.spawn(PointLight {
-        color: Color::srgb(1.0, 1.0, 1.0),
-        intensity: 10.0,
-        range: 100.0,
-        radius: 3.0,
-        ..default()
-    });
     commands.spawn((
         Id { id: 0 },
         HitPoint { hp: 100 },
