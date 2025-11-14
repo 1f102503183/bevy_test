@@ -28,13 +28,20 @@ fn setup_player(
                                     // mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn(Camera2d); // Bundleとかくとエラーになる
+    commands.spawn(PointLight {
+        color: Color::srgb(1.0, 1.0, 1.0),
+        intensity: 10.0,
+        range: 100.0,
+        radius: 3.0,
+        ..default()
+    });
     commands.spawn((
         Id { id: 0 },
         HitPoint { hp: 100 },
         Movespeed { speed: 1.0 },
         Sprite {
             image: asset_server.load("sprite/player/tmp.png"),
-            custom_size: Some(Vec2::new(100.0, 100.0)),
+            custom_size: Some(Vec2::new(150.0, 150.0)),
             ..default()
         },
         Transform::from_xyz(0.0, 0.0, 0.0),
@@ -57,10 +64,15 @@ fn move_player(
     key_input: Res<ButtonInput<KeyCode>>,
 ) {
     for (mut transform, movespeed) in query.iter_mut() {
+        let mut direction = Vec3::ZERO;
         if key_input.pressed(KeyCode::KeyD) {
-            transform.translation.x += 100.0 * movespeed.speed * time.delta_secs();
+            direction.x += 1.0;
         } else if key_input.pressed(KeyCode::KeyA) {
-            transform.translation.x -= 100.0 * movespeed.speed * time.delta_secs();
+            direction.x -= 1.0;
+        }
+        if direction != Vec3::ZERO {
+            transform.translation +=
+                direction.normalize() * movespeed.speed * time.delta_secs() * 100.0;
         }
     }
 }
