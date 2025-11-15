@@ -1,12 +1,12 @@
-use bevy::prelude::*;
+use bevy::{asset::LoadedFolder, prelude::*};
 
 pub struct PlayerPlugin;
 
+// Main Player component
 #[derive(Component)]
 pub struct Id {
     id: u32,
 }
-
 #[derive(Component)]
 pub struct HitPoint {
     hp: i32,
@@ -15,12 +15,24 @@ pub struct HitPoint {
 struct Movespeed {
     speed: f32,
 }
-
 #[derive(Component)]
 pub struct Player;
 
+// 謎の挨拶タイマー
 #[derive(Resource)]
 struct GreetTimer(Timer);
+
+// animation resorce
+#[derive(Resource)]
+struct AnimationTimer(Timer);
+
+// #[derive(Resource, Default)]
+// struct MoveAnimation(Handle<LoadedFolder>);
+// fn load_textures(mut commands: Commands, asset_server: Res<AssetServer>) {
+//     commands.insert_resource(MoveAnimation(
+//         asset_server.load_folder("sprite/player/move_anime"),
+//     ));
+// }
 
 fn setup_player(
     mut commands: Commands,
@@ -31,22 +43,44 @@ fn setup_player(
     commands.spawn((
         Id { id: 0 },
         HitPoint { hp: 100 },
-        Movespeed { speed: 1.0 },
+        Movespeed { speed: 1.5 },
         Sprite {
-            image: asset_server.load("sprite/player/tmp.png"),
+            image: asset_server.load("sprite/player/move_anime/stand.png"),
             custom_size: Some(Vec2::new(150.0, 150.0)),
             ..default()
         },
         Transform::from_xyz(0.0, 0.0, 0.0),
-        // MeshMaterial2d(materials.add(Color::srgb(1.0, 1.0, 1.0))),
         Player,
     ));
 }
 
-fn check_entety(time: Res<Time>, mut timer: ResMut<GreetTimer>, query: Query<(&Id, &HitPoint)>) {
+fn animation(time: Res<Time>, mut timer: ResMut<AnimationTimer>, mut query: Query<&mut Sprite>) {
     if timer.0.tick(time.delta()).just_finished() {
-        for (id, hp) in &query {
-            println!("entety ID : {} health : {}", id.id, hp.hp);
+        for mut sprite in query.iter_mut() {
+            if sprite.flip_x == false {
+                sprite.flip_x = true;
+            } else {
+                sprite.flip_x = false;
+            };
+        }
+    }
+}
+
+fn check_entety(
+    time: Res<Time>,
+    mut timer: ResMut<GreetTimer>,
+    query: Query<(&Id, &HitPoint, &Transform)>,
+) {
+    if timer.0.tick(time.delta()).just_finished() {
+        for (id, hp, transform) in &query {
+            println!(
+                "entety ID : {} health : {} position is : {},{},{}",
+                id.id,
+                hp.hp,
+                transform.translation.x,
+                transform.translation.y,
+                transform.translation.z
+            );
         }
     }
 }
@@ -74,7 +108,11 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_player)
             .insert_resource(GreetTimer(Timer::from_seconds(3.0, TimerMode::Repeating)))
+            .insert_resource(AnimationTimer(Timer::from_seconds(
+                3.0,
+                TimerMode::Repeating,
+            )))
             .add_systems(Update, move_player)
-            .add_systems(Update, check_entety);
+            .add_systems(Update, (check_entety, animation));
     }
 }
