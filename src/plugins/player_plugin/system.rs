@@ -1,50 +1,5 @@
-use bevy::{asset::LoadedFolder, image::ImageSampler, prelude::*};
+use bevy::prelude::*;
 
-pub struct PlayerPlugin;
-
-// Main Player component
-#[derive(Component)]
-pub struct Id {
-    id: u32,
-}
-#[derive(Component)]
-pub struct HitPoint {
-    hp: i32,
-}
-#[derive(Component)]
-struct Movespeed {
-    speed: f32,
-}
-#[derive(Component)]
-pub struct Player;
-
-// 謎の挨拶タイマー
-#[derive(Resource)]
-struct GreetTimer(Timer);
-
-// animation resorce
-#[derive(Component)]
-struct AnimationTimer(Timer);
-
-#[derive(Resource, Default)]
-struct MoveAnimation(Handle<LoadedFolder>);
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, States)]
-enum AppState {
-    #[default]
-    Setup,
-    Finished,
-}
-
-// player statuse
-// #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, States)]
-// enum PlayerState {
-//     #[default]
-//     Stand,
-//     Walking,
-// }
-
-// open folder
 fn load_textures(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(MoveAnimation(
         asset_server.load_folder("sprite/player/walk"),
@@ -203,20 +158,5 @@ fn move_player(
             transform.translation +=
                 direction.normalize() * movespeed.speed * time.delta_secs() * 100.0;
         }
-    }
-}
-
-impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_state::<AppState>()
-            .insert_resource(GreetTimer(Timer::from_seconds(3.0, TimerMode::Repeating)))
-            .add_systems(OnEnter(AppState::Setup), load_textures) // OnEnterでAppStateがSetupの時動くようになる
-            // 2. AppState::Setup の間、毎フレーム読み込み完了をチェック
-            .add_systems(Update, check_textures.run_if(in_state(AppState::Setup)))
-            .add_systems(OnEnter(AppState::Finished), setup_player)
-            .add_systems(
-                Update,
-                (move_player, check_entety, animation).run_if(in_state(AppState::Finished)),
-            );
     }
 }
