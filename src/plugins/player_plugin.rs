@@ -198,6 +198,10 @@ fn move_player(
             direction.x += 1.0;
         } else if key_input.pressed(KeyCode::KeyA) {
             direction.x -= 1.0;
+        } else if key_input.pressed(KeyCode::KeyW) {
+            direction.y -= 1.0;
+        } else if key_input.pressed(KeyCode::KeyS) {
+            direction.y -= 1.0;
         }
         if direction != Vec3::ZERO {
             transform.translation +=
