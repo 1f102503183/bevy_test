@@ -37,12 +37,12 @@ enum AppState {
 }
 
 // player statuse
-// #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, States)]
-// enum PlayerState {
-//     #[default]
-//     Stand,
-//     Walking,
-// }
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, States)]
+enum PlayerState {
+    #[default]
+    Stand,
+    Walking,
+}
 
 // open folder
 fn load_textures(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -148,21 +148,27 @@ fn setup_player(
 fn animation(
     time: Res<Time>,
     texture_atlas_layouts: Res<Assets<TextureAtlasLayout>>,
+    player_state: Res<State<PlayerState>>,
     mut query: Query<(&mut Sprite, &mut AnimationTimer), With<Player>>,
 ) {
     for (mut sprite, mut animation_timer) in query.iter_mut() {
         animation_timer.0.tick(time.delta());
         if animation_timer.0.just_finished() {
-            //.as_mut() でOptionの中身を可変参照で取り出す
-            if let Some(atlas) = sprite.texture_atlas.as_mut() {
-                //アトラスのレイアウト情報を取得、もしなかったらスキップ
-                let Some(layout) = texture_atlas_layouts.get(&atlas.layout) else {
-                    continue;
-                };
-                //総フレーム数を取得
-                let frames = layout.len();
-                // アトラスのインデックスを更新
-                atlas.index = (atlas.index + 1) % frames;
+            match player_state.get() {
+                PlayerState::Walking => {
+                    //.as_mut() でOptionの中身を可変参照で取り出す
+                    if let Some(atlas) = sprite.texture_atlas.as_mut() {
+                        //アトラスのレイアウト情報を取得、もしなかったらスキップ
+                        let Some(layout) = texture_atlas_layouts.get(&atlas.layout) else {
+                            continue;
+                        };
+                        //総フレーム数を取得
+                        let frames = layout.len();
+                        // アトラスのインデックスを更新
+                        atlas.index = (atlas.index + 1) % frames;
+                    }
+                }
+                PlayerState::Stand => (),
             }
         }
     }
@@ -191,6 +197,7 @@ fn move_player(
     time: Res<Time>,
     mut query: Query<(&mut Transform, &Movespeed), With<Player>>,
     key_input: Res<ButtonInput<KeyCode>>,
+    mut player_state: ResMut<NextState<PlayerState>>,
 ) {
     for (mut transform, movespeed) in query.iter_mut() {
         let mut direction = Vec3::ZERO;
@@ -199,13 +206,16 @@ fn move_player(
         } else if key_input.pressed(KeyCode::KeyA) {
             direction.x -= 1.0;
         } else if key_input.pressed(KeyCode::KeyW) {
-            direction.y -= 1.0;
+            direction.y += 1.0;
         } else if key_input.pressed(KeyCode::KeyS) {
             direction.y -= 1.0;
         }
         if direction != Vec3::ZERO {
+            player_state.set(PlayerState::Walking);
             transform.translation +=
                 direction.normalize() * movespeed.speed * time.delta_secs() * 100.0;
+        } else {
+            player_state.set(PlayerState::Stand);
         }
     }
 }
@@ -213,10 +223,12 @@ fn move_player(
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<AppState>()
+            .init_state::<PlayerState>()
             .insert_resource(GreetTimer(Timer::from_seconds(3.0, TimerMode::Repeating)))
             .add_systems(OnEnter(AppState::Setup), load_textures) // OnEnterでAppStateがSetupの時動くようになる
             // 2. AppState::Setup の間、毎フレーム読み込み完了をチェック
             .add_systems(Update, check_textures.run_if(in_state(AppState::Setup)))
+            // OnEnter はその状態になったとき一度だけ
             .add_systems(OnEnter(AppState::Finished), setup_player)
             .add_systems(
                 Update,
