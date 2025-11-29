@@ -128,19 +128,25 @@ fn setup_player(
         .handle(atlas_layout_handle.clone(), &walk1_handle)
         .expect("can't find walk1.png");
 
-    commands.spawn(Camera2d); // Bundleとかくとエラーになる
+    // commands.spawn(Camera2d); // Bundleとかくとエラーになる
+    commands.spawn((
+        Camera3d {
+            ..Default::default()
+        },
+        Transform::from_xyz(0.0, 0.1, 1.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
     commands.spawn((
         Id { id: 0 },
         HitPoint { hp: 100 },
         Movespeed { speed: 1.5 },
         Sprite {
-            custom_size: Some(Vec2::new(150.0, 150.0)),
+            custom_size: Some(Vec2::new(1.5, 1.5)),
             image: nearest_padded_texture.clone(),
             texture_atlas: Some(walk1_index),
             ..default()
         },
         AnimationTimer(Timer::from_seconds(0.3, TimerMode::Repeating)),
-        Transform::from_xyz(0.0, 0.0, 0.0),
+        Transform::from_xyz(0.0, 0.0, 10.0),
         Player,
     ));
 }
@@ -203,11 +209,14 @@ fn move_player(
         let mut direction = Vec3::ZERO;
         if key_input.pressed(KeyCode::KeyD) {
             direction.x += 1.0;
-        } else if key_input.pressed(KeyCode::KeyA) {
+        }
+        if key_input.pressed(KeyCode::KeyA) {
             direction.x -= 1.0;
-        } else if key_input.pressed(KeyCode::KeyW) {
+        }
+        if key_input.pressed(KeyCode::KeyW) {
             direction.y += 1.0;
-        } else if key_input.pressed(KeyCode::KeyS) {
+        }
+        if key_input.pressed(KeyCode::KeyS) {
             direction.y -= 1.0;
         }
         if direction != Vec3::ZERO {
