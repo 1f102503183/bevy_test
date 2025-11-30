@@ -151,6 +151,19 @@ fn setup_player(
     ));
 }
 
+//カメラを動かす関数
+// fn move_camera3d(key_input: Res<ButtonInput<KeyCode>>,mut query: Query<(&mut Transform)>) {
+//     for mut transform in query {
+//         let mut direction = 0;
+//         if key_input.pressed(KeyCode::ArrowLeft) {
+//             direction += 1;
+//         } else if key_input.pressed(KeyCode::ArrowRight){
+//             direction -= 1;
+//         }
+//         let x = (transform.translation.x + transform.translation.z).sqrt() + direction
+//     }
+// }
+
 fn animation(
     time: Res<Time>,
     texture_atlas_layouts: Res<Assets<TextureAtlasLayout>>,
